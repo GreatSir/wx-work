@@ -38,26 +38,27 @@ func (c *Client) PostRemoteFile() {
 
 func (c *Client) PostFile(fieldName, filename, url string, params map[string]string) ([]byte, error) {
 	pr, pw := io.Pipe()
-	defer pr.Close()
 	defer pw.Close()
 	bodyWriter := multipart.NewWriter(pw)
-	defer bodyWriter.Close()
-	fileWriter, err := bodyWriter.CreateFormFile(fieldName, filename)
-	if err != nil {
-		return nil, err
-	}
-	fh, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer fh.Close()
-	_, err = io.Copy(fileWriter, fh)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range params {
-		bodyWriter.WriteField(k, v)
-	}
+	go func() {
+		defer bodyWriter.Close()
+		fileWriter, err := bodyWriter.CreateFormFile(fieldName, filename)
+		if err != nil {
+
+		}
+		fh, err := os.Open(filename)
+		if err != nil {
+
+		}
+		defer fh.Close()
+		_, err = io.Copy(fileWriter, fh)
+		if err != nil {
+
+		}
+		for k, v := range params {
+			bodyWriter.WriteField(k, v)
+		}
+	}()
 	c.SetHeader("Content-Type", bodyWriter.FormDataContentType())
 	c.SetHeader("Transfer-Encoding", "chunked")
 	body := io.NopCloser(pr)
