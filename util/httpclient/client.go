@@ -18,26 +18,31 @@ func (c *Client) SetHeader(k, v string) *Client {
 	c.header[k] = v
 	return c
 }
+
 func (c *Client) Get(url string) ([]byte, error) {
 	return c.Request(http.MethodGet, url, nil)
 }
+
 func (c *Client) PostJson(url string, params map[string]interface{}) ([]byte, error) {
 	body, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
+	c.SetHeader("Content-Type", "application/json")
 	return c.Request(http.MethodPost, url, bytes.NewReader(body))
 }
+
 func (c *Client) PostRemoteFile() {
 
 }
-func (c *Client) PostFile(fieldname, filename, url string, params map[string]string) ([]byte, error) {
+
+func (c *Client) PostFile(fieldName, filename, url string, params map[string]string) ([]byte, error) {
 	pr, pw := io.Pipe()
 	defer pr.Close()
 	defer pw.Close()
 	bodyWriter := multipart.NewWriter(pw)
 	defer bodyWriter.Close()
-	fileWriter, err := bodyWriter.CreateFormFile(fieldname, filename)
+	fileWriter, err := bodyWriter.CreateFormFile(fieldName, filename)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +63,7 @@ func (c *Client) PostFile(fieldname, filename, url string, params map[string]str
 	body := io.NopCloser(pr)
 	return c.Request(http.MethodPost, url, body)
 }
+
 func (c *Client) Request(method, url string, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
