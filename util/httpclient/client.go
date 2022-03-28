@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -23,7 +22,7 @@ func (c *Client) Get(url string) ([]byte, error) {
 func (c *Client) PostJson(url string, params map[string]interface{}) ([]byte, error) {
 	body, err := json.Marshal(params)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	return c.Request(http.MethodPost, url, bytes.NewReader(body))
 }
