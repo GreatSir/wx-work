@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 )
 
 type Client struct {
@@ -29,8 +31,32 @@ func (c *Client) PostJson(url string, params map[string]interface{}) ([]byte, er
 func (c *Client) PostRemoteFile() {
 
 }
-func (c *Client) PostFile() {
-
+func (c *Client) PostFile(fieldname, filename, url string, params map[string]string) ([]byte, error) {
+	pr, pw := io.Pipe()
+	defer pr.Close()
+	defer pw.Close()
+	bodyWriter := multipart.NewWriter(pw)
+	defer bodyWriter.Close()
+	fileWriter, err := bodyWriter.CreateFormFile(fieldname, filename)
+	if err != nil {
+		return nil, err
+	}
+	fh, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer fh.Close()
+	_, err = io.Copy(fileWriter, fh)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range params {
+		bodyWriter.WriteField(k, v)
+	}
+	c.SetHeader("Content-Type", bodyWriter.FormDataContentType())
+	c.SetHeader("Transfer-Encoding", "chunked")
+	body := io.NopCloser(pr)
+	return c.Request(http.MethodPost, url, body)
 }
 func (c *Client) Request(method, url string, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
