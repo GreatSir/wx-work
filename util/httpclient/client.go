@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -36,28 +37,35 @@ func (c *Client) PostRemoteFile() {
 
 }
 
-func (c *Client) PostFile(fieldName, filename, url string, params map[string]string) ([]byte, error) {
+func (c *Client) PostFile(filed, filename, url string) ([]byte, error) {
 	pr, pw := io.Pipe()
-	defer pw.Close()
 	bodyWriter := multipart.NewWriter(pw)
 	go func() {
-		defer bodyWriter.Close()
-		fileWriter, err := bodyWriter.CreateFormFile(fieldName, filename)
+		fw, err := bodyWriter.CreateFormFile(filed, filename)
 		if err != nil {
-
+			log.Fatal(err)
 		}
-		fh, err := os.Open(filename)
+		fr, err := os.Open(filename)
 		if err != nil {
-
+			log.Fatal(err)
 		}
-		defer fh.Close()
-		_, err = io.Copy(fileWriter, fh)
+		_, err = io.Copy(fw, fr)
 		if err != nil {
+			log.Fatal(err)
+		}
+		err = fr.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = bodyWriter.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = pw.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		}
-		for k, v := range params {
-			bodyWriter.WriteField(k, v)
-		}
 	}()
 	c.SetHeader("Content-Type", bodyWriter.FormDataContentType())
 	c.SetHeader("Transfer-Encoding", "chunked")
