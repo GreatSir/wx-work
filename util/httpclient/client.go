@@ -21,7 +21,7 @@ func (c *Client) SetHeader(k, v string) *Client {
 }
 
 func (c *Client) Get(url string) ([]byte, error) {
-	return c.Request(http.MethodGet, url, nil)
+	return c.request(http.MethodGet, url, nil)
 }
 
 func (c *Client) PostJson(url string, params map[string]interface{}) ([]byte, error) {
@@ -30,7 +30,7 @@ func (c *Client) PostJson(url string, params map[string]interface{}) ([]byte, er
 		return nil, err
 	}
 	c.SetHeader("Content-Type", "application/json")
-	return c.Request(http.MethodPost, url, bytes.NewReader(body))
+	return c.request(http.MethodPost, url, bytes.NewReader(body))
 }
 
 func (c *Client) PostRemoteFile() {
@@ -70,10 +70,10 @@ func (c *Client) PostFile(filed, filename, url string) ([]byte, error) {
 	c.SetHeader("Content-Type", bodyWriter.FormDataContentType())
 	c.SetHeader("Transfer-Encoding", "chunked")
 	body := io.NopCloser(pr)
-	return c.Request(http.MethodPost, url, body)
+	return c.request(http.MethodPost, url, body)
 }
 
-func (c *Client) Request(method, url string, body io.Reader) ([]byte, error) {
+func (c *Client) request(method, url string, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
