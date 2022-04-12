@@ -43,27 +43,27 @@ func (c *Client) PostFile(filed, filename, url string) ([]byte, error) {
 	go func() {
 		fw, err := bodyWriter.CreateFormFile(filed, filename)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		fr, err := os.Open(filename)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		_, err = io.Copy(fw, fr)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		err = fr.Close()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		err = bodyWriter.Close()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		err = pw.Close()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 
 	}()
